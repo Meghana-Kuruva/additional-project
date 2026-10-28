@@ -1,0 +1,220 @@
+\documentclass[sigconf, review=true]{acmart}
+%Do not remove the review=true option for papers submitted for review to ICVGIP2026.
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs} % For formal tables
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{amsmath, amssymb, amsfonts}
+%\usepackage{cite} % REMOVED: clashes with natbib loaded by acmart
+\usepackage{url}
+\usepackage{color}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{algorithm, algorithmic}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue}
+\usepackage{filecontents}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.17}
+\usepackage{tikz}
+\usepgfplotslibrary{statistics}
+%\IEEEoverridecommandlockouts % REMOVED: IEEEtran-only command, undefined in acmart
+
+\begin{filecontents*}{pck_threshold.csv}
+Threshold_mm,Hourglass,HRNet,HRNet_JV
+5,42.1,51.5,54.2
+10,65.8,75.3,78.0
+15,79.4,85.7,87.5
+20,88.0,92.0,93.0
+25,92.3,95.1,96.0
+30,94.8,97.2,98.0
+\end{filecontents*}
+
+\begin{filecontents*}{mpjpe_epochs.csv}
+Epoch,Hourglass,HRNet,HRNet_JV
+10,18.5,16.2,15.8
+20,16.7,14.5,13.9
+30,15.6,13.9,12.9
+40,15.3,13.8,12.7
+50,15.2,13.8,12.5
+\end{filecontents*}
+
+
+
+
+
+
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, calc, shapes.geometric, fit}
+\usepackage{amsmath, amssymb}
+
+% Define missing color
+\definecolor{graytext}{gray}{0.4}
+
+% Define all required styles
+\tikzset{
+  % Node styles
+  envbox/.style={
+    draw=blue!70, fill=blue!5, rounded corners=3pt,
+    align=center, inner sep=6pt, thick, minimum width=4.0cm
+  },
+  policybox/.style={
+    draw=orange!70, fill=orange!5, rounded corners=3pt,
+    align=center, inner sep=6pt, thick, minimum width=4.0cm
+  },
+  atinbox/.style={
+    draw=purple!70, fill=purple!5, rounded corners=3pt,
+    align=center, inner sep=6pt, thick
+  },
+  valuebox/.style={
+    draw=red!70, fill=red!5, rounded corners=3pt,
+    align=center, inner sep=6pt, thick
+  },
+  explorebox/.style={
+    draw=magenta!70, fill=magenta!5, rounded corners=3pt,
+    align=center, inner sep=6pt, thick
+  },
+  auxbox/.style={
+    draw=teal!70, fill=teal!5, rounded corners=3pt,
+    align=center, inner sep=4pt, font=\tiny, minimum width=4.5cm
+  },
+  lossbox/.style={
+    draw=black!70, fill=gray!5, rounded corners=3pt,
+    align=center, inner sep=6pt, thick
+  },
+  updatebox/.style={
+    draw=cyan!70, fill=cyan!5, rounded corners=3pt,
+    align=center, inner sep=6pt, thick
+  },
+  replaybox/.style={
+    draw=brown!70, fill=brown!5, rounded corners=3pt,
+    align=center, inner sep=6pt, thick
+  },
+  % Arrow styles
+  arrow/.style={-{Stealth[length=3mm]}, draw=black!70, thick},
+  dataarrow/.style={-{Stealth[length=3mm]}, draw=blue!70, thick},
+  atinarrow/.style={-{Stealth[length=3mm]}, draw=purple!70, thick},
+  lossarrow/.style={-{Stealth[length=3mm]}, draw=red!70, thick},
+}
+
+
+% Copyright
+%\setcopyright{none}
+%\setcopyright{acmcopyright}
+%\setcopyright{acmlicensed}
+\setcopyright{rightsretained}
+%\setcopyright{usgov}
+%\setcopyright{usgovmixed}
+%\setcopyright{cagov}
+%\setcopyright{cagovmixed}
+
+
+% DOI  - Required only for Camera Ready
+%\acmDOI{10.475/123_4}
+
+% ISBN - Required only for Camera Ready
+%\acmISBN{123-4567-24-567/08/06}
+
+%Conference
+\acmConference[ICVGIP2026]{17th Indian Conference on Computer Vision, Graphics and Image Processing}{December 21-25, 2026}{Kolkata, India}
+\acmYear{2026}
+\copyrightyear{2026}
+\acmPrice{15.00}
+
+\begin{document}
+\title{Enhanced 2D/3D Hand Pose Estimation via an HRNet Backbone and an Explicit Joint Vector Feature}
+
+% \titlenote{Produces the permission block, and
+%   copyright information}
+
+
+
+
+
+
+
+% \author{Submission Id XYZW}
+% \affiliation{%
+%   \institution{XYZ}
+%   \streetaddress{XYZ}
+%   \city{XYZ}
+%   \state{XYZ}
+%   \country{XYZ}
+%   \postcode{000000}
+% }
+
+
+
+
+
+
+
+
+
+% The default list of authors is too long for headers.
+\renewcommand{\shortauthors}{}
+
+
+\begin{abstract}
+Hand pose estimation from monocular RGB images is a foundational challenge in human-computer interaction and robotics. While deep learning has advanced the field, many existing architectures struggle with spatial detail loss due to aggressive downsampling and an underutilization of the hand's inherent anatomical constraints.
+In this work, we propose two structural enhancements to the standard heatmap-based estimation pipeline. First, we replace the traditional stacked Hourglass backbone with a High-Resolution Network (HRNet) to maintain high-resolution spatial representations throughout the feature extraction process. Second, we introduce a joint vector feature that explicitly encodes the directional and length relationships between anatomically adjacent joints, integrating this geometric prior into the pose regression stage.
+Under a controlled comparison on FreiHAND, in which every variant is trained and evaluated under identical settings on a common held-out split, both modifications improve keypoint localization accuracy and reduce mean per-joint position error (MPJPE) relative to an Hourglass-based baseline, and their effects are complementary.
+\end{abstract}
+
+%
+% The code below should be generated by the tool at
+% http://dl.acm.org/ccs.cfm
+% Please copy and paste the code instead of the example below.
+%
+% \begin{CCSXML}
+% <ccs2012>
+%  <concept>
+%   <concept_id>10010520.10010553.10010562</concept_id>
+%   <concept_desc>Computer systems organization~Embedded systems</concept_desc>
+%   <concept_significance>500</concept_significance>
+%  </concept>
+%  <concept>
+%   <concept_id>10010520.10010575.10010755</concept_id>
+%   <concept_desc>Computer systems organization~Redundancy</concept_desc>
+%   <concept_significance>300</concept_significance>
+%  </concept>
+%  <concept>
+%   <concept_id>10010520.10010553.10010554</concept_id>
+%   <concept_desc>Computer systems organization~Robotics</concept_desc>
+%   <concept_significance>100</concept_significance>
+%  </concept>
+%  <concept>
+%   <concept_id>10003033.10003083.10003095</concept_id>
+%   <concept_desc>Networks~Network reliability</concept_desc>
+%   <concept_significance>100</concept_significance>
+%  </concept>
+% </ccs2012>
+% \end{CCSXML}
+
+% \ccsdesc[500]{Computer systems organization~Embedded systems}
+% \ccsdesc[300]{Computer systems organization~Redundancy}
+% \ccsdesc{Computer systems organization~Robotics}
+% \ccsdesc[100]{Networks~Network reliability}
+
+
+\keywords{Hand Pose Estimation, HRNet, Joint Vector Feature, 3D Pose, Anatomical Priors, Deep Learning.}
+
+
+\maketitle
+
+\input{samplebody-conf}
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{ICVGIP-Latex-Template}
+
+\appendix
+
+
+
+\end{document}

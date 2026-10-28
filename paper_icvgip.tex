@@ -1,0 +1,1260 @@
+% ============================================================
+%  ICVGIP Submission — ACM sigconf format (acmart)
+%  MACE: Multimodal Affective Companion with Empathy
+%
+%  Converted from the IEEEtran camera-ready version (paper.tex).
+%  All experimental results are unchanged and remain verified
+%  from executed code.
+%
+%  BUILD:
+%    pdflatex paper_icvgip
+%    bibtex   paper_icvgip
+%    pdflatex paper_icvgip
+%    pdflatex paper_icvgip
+%
+%  Preamble verified line-by-line against the official
+%  ICVGIP-Latex-Template.tex (ICVGIP 2026) shipped in this folder.
+%
+%  ICVGIP 2026: double-blind; main manuscript limited to 8 pages
+%  including text, figures and tables (references may exceed).
+% ============================================================
+\documentclass[sigconf, review=true]{acmart}
+%Do not remove the review=true option for papers submitted for review to ICVGIP2026.
+
+% acmart already loads amsmath, amsfonts, amssymb, booktabs,
+% graphicx, xcolor and hyperref. Only additional packages here.
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{multirow}
+\usepackage{array}
+
+\hyphenation{GoEmotions RoBERTa}
+
+% -----------------------------------------------------------
+% Rights / conference metadata — copied verbatim from the
+% official ICVGIP-Latex-Template.tex.
+% -----------------------------------------------------------
+\setcopyright{rightsretained}
+
+% DOI  - Required only for Camera Ready
+%\acmDOI{10.475/123_4}
+
+% ISBN - Required only for Camera Ready
+%\acmISBN{123-4567-24-567/08/06}
+
+%Conference
+\acmConference[ICVGIP2026]{17th Indian Conference on Computer Vision, Graphics and Image Processing}{December 21-25, 2026}{Kolkata, India}
+\acmYear{2026}
+\copyrightyear{2026}
+\acmPrice{15.00}
+
+\begin{document}
+
+% -----------------------------------------------------------
+\title[MACE: A Multimodal Affective Companion]{MACE: A Multimodal
+Affective Companion with Chain-of-Thought Prompting and Preference
+Data Infrastructure for Future RLHF Training}
+
+% -----------------------------------------------------------
+% ANONYMISED FOR DOUBLE-BLIND REVIEW.
+% ICVGIP 2026 requires that authors not include names,
+% affiliations, acknowledgments, or any identifying information.
+% UNCOMMENT AND COMPLETE ONLY FOR THE CAMERA-READY VERSION:
+%
+% \author{Meghana Kuruva}
+% \affiliation{%
+%   \institution{Indian Institute of Information Technology Sri City}
+%   \city{Sri City}
+%   \state{Andhra Pradesh}
+%   \country{India}}
+% \email{meghana.k23@iiits.in}
+%
+% \author{Piyush Joshi}
+% \affiliation{%
+%   \institution{Indian Institute of Information Technology Sri City}
+%   \city{Sri City}
+%   \state{Andhra Pradesh}
+%   \country{India}}
+% \email{piyush.j@iiits.in}
+% -----------------------------------------------------------
+
+\renewcommand{\shortauthors}{}
+
+% -----------------------------------------------------------
+\begin{abstract}
+Affective computing systems that perceive and respond to human
+emotion across multiple modalities hold promise for mental health
+support and human--computer interaction, yet most deployed
+dialogue systems rely on a single input channel and cannot adapt
+to individual user preferences without retraining.
+This paper presents MACE (Multimodal Affective Companion with
+Empathy), an AI companion that fuses 28-class text emotion
+recognition, facial affect inference, and voice interaction within
+a Chain-of-Thought (CoT) prompting architecture.
+Text emotion is classified using a fine-tuned RoBERTa model on
+the GoEmotions corpus; its public model card reports
+F1~$\approx$~0.54 under per-label optimised decision thresholds.
+Facial affect is inferred zero-shot via Gemini-1.5-Flash using a
+constrained single-label prompt---a paradigm that avoids
+dataset-specific training while leveraging VLM visual reasoning.
+We characterise this design choice against published FER2013
+benchmarks (Section~\ref{sec:facial}).
+Controlled text classification experiments on an 8-class corpus
+($N$=34,792) show that class-weighted LinearSVC achieves the
+best macro F1 (60.42\%).
+Holding the classifier family fixed, class weighting yields a
+clean gain on disgust detection of $+$9.01~pp (26.39\%~$\to$~35.40\%
+F1, Logistic Regression); a larger gain of $+$12.21~pp is observed
+when additionally switching from an RBF-kernel SVM to a linear
+SVC, a comparison confounded by the simultaneous change in kernel
+and regularisation.
+SMOTE oversampling underperforms class-weighting (57.68\%
+vs.\ 60.42\% macro F1) on sparse Bag-of-Words features.
+An automated ablation study demonstrates that enriching
+linguistic context improves majority-class detection
+(fear~$+$2.63~pp, joy~$+$2.11~pp with bigrams) but degrades
+minority-class detection (disgust~$-$1.90~pp), motivating MACE's
+explicit CoT injection over learned n-gram representations.
+All quantitative text-classification results are single-split
+estimates without cross-validation; effects below approximately
+2~pp should be interpreted cautiously.
+MACE additionally collects binary preference labels as
+infrastructure for future reward model training and
+Direct Preference Optimisation (DPO).
+\end{abstract}
+
+%
+% The code below should be generated by the tool at
+% http://dl.acm.org/ccs.cfm
+% Please copy and paste the code instead of the example below.
+% The official ICVGIP template leaves this block commented out;
+% generate the authoritative XML before the camera-ready version.
+% The concept IDs below are indicative and NOT verified against
+% the ACM CCS tool.
+%
+% \begin{CCSXML}
+% <ccs2012>
+%    <concept>
+%        <concept_id>10010147.10010178.10010179</concept_id>
+%        <concept_desc>Computing methodologies~Natural language processing</concept_desc>
+%        <concept_significance>500</concept_significance>
+%        </concept>
+%    <concept>
+%        <concept_id>10010147.10010178.10010224</concept_id>
+%        <concept_desc>Computing methodologies~Computer vision</concept_desc>
+%        <concept_significance>300</concept_significance>
+%        </concept>
+%    <concept>
+%        <concept_id>10010147.10010257</concept_id>
+%        <concept_desc>Computing methodologies~Machine learning</concept_desc>
+%        <concept_significance>300</concept_significance>
+%        </concept>
+%    <concept>
+%        <concept_id>10003120.10003121</concept_id>
+%        <concept_desc>Human-centered computing~Human computer interaction (HCI)</concept_desc>
+%        <concept_significance>300</concept_significance>
+%        </concept>
+%  </ccs2012>
+% \end{CCSXML}
+%
+% \ccsdesc[500]{Computing methodologies~Natural language processing}
+% \ccsdesc[300]{Computing methodologies~Computer vision}
+% \ccsdesc[300]{Computing methodologies~Machine learning}
+% \ccsdesc[300]{Human-centered computing~Human computer interaction (HCI)}
+
+\keywords{affective computing, emotion recognition, multimodal
+fusion, chain-of-thought prompting, reinforcement learning from
+human feedback, large language models, FER2013, GoEmotions, class
+imbalance, vision-language models}
+
+\maketitle
+
+% -----------------------------------------------------------
+\section{Introduction}
+\label{sec:intro}
+
+Human emotion is a complex, multidimensional phenomenon that
+manifests simultaneously across linguistic, paralinguistic, and
+physiological channels~\cite{ekman1992}.
+Emotional intelligence in conversational agents---the capacity to
+detect affective states and respond with appropriate
+empathy---remains an open challenge at the intersection of natural
+language processing (NLP), affective computing, and
+human-computer interaction (HCI).
+
+Large language models (LLMs)~\cite{devlin2019bert,liu2019roberta}
+have enabled richer conversational systems, yet most deployed
+architectures treat emotion as a coarse binary (positive/negative)
+or a three-class label.
+Such granularity discards psychologically meaningful distinctions
+between, for example, \emph{grief} and \emph{disappointment}, or
+\emph{admiration} and \emph{joy}, that are essential for genuine
+empathetic engagement.
+Furthermore, existing affective dialogue systems are predominantly
+unimodal and static: they process one input channel and cannot
+adapt response style to individual preferences without full model
+retraining.
+
+This work addresses these limitations through five contributions:
+
+\begin{enumerate}
+    \item \textbf{Fine-grained multimodal emotion perception.}
+          MACE classifies 28 fine-grained emotions from text
+          using a fine-tuned RoBERTa model~\cite{samlow2022goemotions}
+          and infers facial affect via a vision-language model
+          (VLM) using zero-shot constrained prompting.
+    \item \textbf{Facial inference benchmarking.}
+          We characterise VLM-based facial emotion inference
+          against the FER2013 benchmark~\cite{goodfellow2013fer},
+          contrasting the zero-shot VLM paradigm with published
+          supervised CNN and transformer baselines.
+    \item \textbf{Chain-of-Thought contextual prompting.}
+          A structured CoT template integrates text emotion,
+          facial expression, user memory, and conversation history
+          to condition an LLM for empathetic response
+          generation~\cite{wei2022chainofthought}.
+    \item \textbf{Class-imbalance-aware classification.}
+          Controlled experiments demonstrate that class-weighted
+          loss outperforms SMOTE on sparse text features,
+          recovering 9--12 F1 points on disgust depending on the
+          classifier family; the larger figure reflects an
+          additional kernel/solver change alongside weighting
+          (Section~\ref{sec:results}).
+    \item \textbf{Preference data infrastructure for future RLHF.}
+          Binary helpfulness signals are stored persistently,
+          forming a preference corpus for future reward model
+          training via DPO~\cite{ouyang2022rlhf,rafailov2023dpo}.
+\end{enumerate}
+
+Section~\ref{sec:related} reviews related work.
+Section~\ref{sec:methodology} describes the system architecture
+and mathematical formulation.
+Section~\ref{sec:algorithm} presents the inference algorithm.
+Section~\ref{sec:setup} details the experimental setup.
+Section~\ref{sec:results} reports text classification results.
+Section~\ref{sec:facial} presents facial inference benchmarking.
+Section~\ref{sec:ablation} presents the ablation study.
+Section~\ref{sec:comparison} provides comparative analysis.
+Section~\ref{sec:userstudy} describes the planned user evaluation.
+Section~\ref{sec:limitations} acknowledges limitations, and
+Section~\ref{sec:conclusion} concludes.
+
+% -----------------------------------------------------------
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Text-Based Emotion Recognition}
+
+Early approaches relied on lexical resources such as the NRC
+Emotion Lexicon~\cite{mohammad2013crowdsourcing} and rule-based
+systems grounded in Ekman's six basic
+emotions~\cite{ekman1992}.
+The SemEval-2007 Affective Text task~\cite{strapparava2007semeval}
+stimulated supervised learning with SVM classifiers.
+Pre-trained transformers---BERT~\cite{devlin2019bert} and
+RoBERTa~\cite{liu2019roberta}---subsequently demonstrated that
+contextual embeddings transfer effectively to emotion classification.
+Demszky et al.~\cite{demszky2020goemotions} introduced
+GoEmotions: 58,000 Reddit comments annotated across 28 fine-grained
+emotion labels, enabling substantially richer taxonomies and
+reporting an average F1 of $\approx$0.46 for their fine-tuned
+BERT model on the full 28-class task.
+
+\subsection{Facial Emotion Recognition}
+
+Goodfellow et al.~\cite{goodfellow2013fer} introduced FER2013,
+establishing that human accuracy on posed facial expression images
+is only $\approx$65.5\%, reflecting the intrinsic difficulty of
+the task.
+Subsequent CNN architectures progressively improved accuracy from
+$\approx$65\% to $\approx$73\%~\cite{li2022fer_survey}.
+Transformer-based approaches, including Vision Transformer (ViT)
+variants, have pushed state-of-the-art above
+85\%~\cite{li2022fer_survey}.
+Conventional approaches are trained in a supervised manner
+per-dataset; by contrast, vision-language
+models~\cite{alayrac2022flamingo} enable zero-shot facial
+emotion inference by leveraging broad pre-trained visual
+understanding, trading potential accuracy ceiling for
+deployment flexibility and the elimination of dataset-specific
+training.
+
+\subsection{Class Imbalance in Affective Corpora}
+
+Affective datasets are inherently imbalanced: high-frequency
+states such as joy co-occur far more commonly than rare states
+such as disgust or shame.
+Class-weighted loss and SMOTE~\cite{chawla2002smote} oversampling
+are standard mitigation strategies.
+However, SMOTE's effectiveness degrades on high-dimensional sparse
+feature spaces~\cite{blagus2013smote} because interpolating
+between nearest neighbours in BoW space yields semantically
+incoherent documents.
+
+\subsection{Multimodal Affective Dialogue}
+
+Poria et al.~\cite{poria2016convolutional} demonstrated that
+fusing textual, acoustic, and visual features outperforms any
+single modality for sentiment analysis.
+Hazarika et al.~\cite{hazarika2018conversational} introduced
+memory networks for conversational emotion recognition, showing
+that discourse history materially benefits multimodal encoders.
+
+\subsection{Chain-of-Thought Prompting and RLHF}
+
+Wei et al.~\cite{wei2022chainofthought} showed that prompting
+LLMs with explicit intermediate reasoning steps substantially
+improves multi-step task performance.
+Ouyang et al.~\cite{ouyang2022rlhf} demonstrated that
+Reinforcement Learning from Human Feedback (RLHF)---through
+reward modelling and Proximal Policy Optimisation (PPO)---aligns
+LLM outputs with human preferences more effectively than
+supervised fine-tuning alone.
+Rafailov et al.~\cite{rafailov2023dpo} unified reward modelling
+and policy optimisation into Direct Preference Optimisation (DPO),
+a single-stage contrastive objective that is the target of
+MACE's future training pipeline.
+
+\subsection{Positioning}
+
+None of the systems above combine fine-grained multimodal emotion
+perception, benchmark-characterised zero-shot facial inference,
+persistent cross-session memory, and a preference-logging
+infrastructure within a single deployed conversational agent.
+MACE does not claim to advance the state of the art on any
+individual sub-task (text emotion classification, facial emotion
+recognition, or CoT prompting); its contribution is the
+integration and the controlled analysis of the design trade-offs
+this integration exposes, detailed in Section~\ref{sec:comparison}.
+
+% -----------------------------------------------------------
+\section{System Methodology}
+\label{sec:methodology}
+
+\subsection{Architecture Overview}
+
+MACE operates as a five-stage pipeline:
+\textbf{(1)} multimodal input acquisition (text, optional image,
+optional voice transcription);
+\textbf{(2)} emotion perception (text: 28-class RoBERTa;
+face: zero-shot VLM);
+\textbf{(3)} context retrieval (conversation history, user memory,
+preference exemplars from a local SQLite database);
+\textbf{(4)} CoT prompt construction; and
+\textbf{(5)} LLM response generation with binary preference
+feedback capture.
+Algorithm~\ref{alg:mace} formalises this pipeline for a single
+conversational turn.
+
+\subsection{Text Emotion Classification}
+
+Let $x \in \mathcal{X}$ denote a natural language utterance.
+The text emotion classifier maps $x$ to a probability
+distribution over $K{=}28$ GoEmotions categories via fine-tuned
+RoBERTa:
+\begin{equation}
+    \mathbf{p}^{\text{text}} = \text{softmax}\!\left(
+    \mathbf{W} \cdot \text{RoBERTa}_\theta(x) + \mathbf{b}
+    \right),
+    \label{eq:text_emotion}
+\end{equation}
+where $\mathbf{W} \in \mathbb{R}^{K \times d}$ are learned
+projection weights and $d$ is the encoder hidden dimension.
+The primary detected emotion and its confidence score are:
+\begin{equation}
+    e^* = \arg\max_{k} \, p^{\text{text}}_k, \quad
+    c^* = \max_{k} \, p^{\text{text}}_k.
+    \label{eq:primary_emotion}
+\end{equation}
+
+\subsection{Facial Emotion Inference}
+
+Given an optional camera image $I$, a VLM $g_\phi$ returns a
+single-label facial affect estimate under a constrained
+prompt $\mathcal{P}_{\text{face}}$:
+\begin{equation}
+    e^{\text{face}} = g_\phi\!\left(I,\; \mathcal{P}_{\text{face}}\right).
+    \label{eq:face_emotion}
+\end{equation}
+When no image is available, $e^{\text{face}}{=}\varnothing$ and
+this field is omitted from the downstream CoT prompt.
+The prompt $\mathcal{P}_{\text{face}}$ constrains the output to a
+single emotion label from a fixed vocabulary, preventing
+free-form responses that would require post-hoc parsing.
+
+\subsection{Persistent User Memory}
+
+Let $\mathcal{T}{=}\{(\phi_j, c_j)\}$ denote trigger
+phrase--category pairs, $c_j \in \{\texttt{like},
+\texttt{dislike}\}$.
+A preference item is extracted and stored as:
+\begin{equation}
+    m_i = \text{parse}(x, \phi_j), \quad
+    \mathcal{M} \leftarrow \mathcal{M} \cup \{(m_i, c_j)\},
+    \label{eq:memory}
+\end{equation}
+where $\text{parse}(\cdot)$ extracts the noun phrase following
+trigger $\phi_j$.
+$\mathcal{M}$ is persisted across sessions in SQLite with
+insertion-time deduplication.
+
+\subsection{Chain-of-Thought Prompt Construction}
+
+Let $\mathcal{H}_{t-1}$ denote the three most recent
+$(u_i, r_i)$ conversation turns, and let
+$\mathcal{F}^+, \mathcal{F}^-$ denote the five most recent
+positively- and negatively-rated interaction pairs retrieved
+from the preference database.
+The CoT context vector at turn $t$ is:
+\begin{equation}
+    \Phi_t = \bigl(e^*,\; c^*,\; e^{\text{face}},
+               \; \mathcal{M},\; \mathcal{H}_{t-1},\;
+               \mathcal{F}^+,\; \mathcal{F}^-\bigr).
+    \label{eq:cot_context}
+\end{equation}
+The response is generated by conditioning a pre-trained LLM
+$\mathcal{G}$ on the serialised context:
+\begin{equation}
+    r_t = \mathcal{G}\!\left(\, \pi(\Phi_t),\; x_t \right),
+    \label{eq:generation}
+\end{equation}
+where $\pi(\cdot)$ serialises $\Phi_t$ into a structured
+natural-language prompt that exposes the reasoning chain
+explicitly before generating the empathetic reply.
+
+\subsection{Preference Data Collection}
+
+After each response $r_t$, the user provides a binary signal
+$y_t \in \{+1, -1\}$ (``helpful'' / ``not helpful'').
+The tuple $(x_t, \Phi_t, r_t, y_t)$ is appended to the
+preference database $\mathcal{D}$.
+
+\textbf{Current deployment scope.}
+MACE does not yet train a reward model or update $\mathcal{G}$
+via gradient descent.
+Positive preference exemplars are injected into the CoT prompt
+as in-context demonstrations, providing an immediate alignment
+signal.
+This constitutes test-time preference adaptation rather than
+full RLHF.
+The formal DPO training objective over preference
+pairs $(\mathbf{y}_w, \mathbf{y}_l)$ that will be applied
+once $|\mathcal{D}|$ is sufficient is:
+\begin{equation}
+    \mathcal{L}_{\text{DPO}} =
+    -\mathbb{E}\!\left[\log\sigma\!\left(
+    \beta \log \frac{\mathcal{G}(\mathbf{y}_w \mid x)}
+                    {\mathcal{G}_0(\mathbf{y}_w \mid x)}
+    - \beta \log \frac{\mathcal{G}(\mathbf{y}_l \mid x)}
+                      {\mathcal{G}_0(\mathbf{y}_l \mid x)}
+    \right)\right],
+    \label{eq:dpo}
+\end{equation}
+where $\mathcal{G}_0$ is the frozen reference policy and
+$\beta{>}0$ is a KL-penalty coefficient~\cite{rafailov2023dpo}.
+
+% -----------------------------------------------------------
+\section{Algorithm}
+\label{sec:algorithm}
+
+Algorithm~\ref{alg:mace} summarises the MACE inference pipeline
+for a single conversational turn.
+
+\begin{algorithm}
+\caption{MACE: Single-Turn Inference}
+\label{alg:mace}
+\begin{algorithmic}[1]
+\REQUIRE Utterance $x_t$; optional image $I_t$;
+         preference database $\mathcal{D}$; memory $\mathcal{M}$
+\ENSURE  Response $r_t$; updated $\mathcal{D}$, $\mathcal{M}$
+
+\STATE $\mathbf{p}^{\text{text}} \leftarrow
+       f_\theta(x_t)$ \COMMENT{Eq.~\eqref{eq:text_emotion}}
+\STATE $(e^*, c^*) \leftarrow
+       (\arg\max_k p^{\text{text}}_k,\;
+        \max_k p^{\text{text}}_k)$
+\IF{$I_t \neq \varnothing$}
+    \STATE $e^{\text{face}} \leftarrow
+           g_\phi(I_t, \mathcal{P}_{\text{face}})$
+\ELSE
+    \STATE $e^{\text{face}} \leftarrow \varnothing$
+\ENDIF
+\STATE $(m_{\text{new}}, c_{\text{new}}) \leftarrow
+       \text{MemoryExtract}(x_t)$ \COMMENT{Eq.~\eqref{eq:memory}}
+\IF{$m_{\text{new}} \neq \varnothing$}
+    \STATE $\mathcal{M} \leftarrow \mathcal{M} \cup
+           \{(m_{\text{new}}, c_{\text{new}})\}$
+\ENDIF
+\STATE $\mathcal{H}_{t-1} \leftarrow
+       \text{RetrieveHistory}(\mathcal{D},\; n{=}3)$
+\STATE $(\mathcal{F}^+, \mathcal{F}^-) \leftarrow
+       \text{RetrievePreferences}(\mathcal{D},\; k{=}5)$
+\STATE $\Phi_t \leftarrow (e^*, c^*, e^{\text{face}},
+       \mathcal{M}, \mathcal{H}_{t-1}, \mathcal{F}^+,
+       \mathcal{F}^-)$ \COMMENT{Eq.~\eqref{eq:cot_context}}
+\STATE $r_t \leftarrow \mathcal{G}(\pi(\Phi_t),\; x_t)$
+       \COMMENT{Eq.~\eqref{eq:generation}}
+\STATE $\text{SaveChat}(\mathcal{D},\; x_t, r_t, e^*, c^*)$
+\STATE $y_t \leftarrow \text{CollectBinaryFeedback}()$
+\STATE $\text{SavePreference}(\mathcal{D},\; y_t)$
+\RETURN $r_t$
+\end{algorithmic}
+\end{algorithm}
+
+% -----------------------------------------------------------
+\section{Experimental Setup}
+\label{sec:setup}
+
+\subsection{Text Emotion Dataset}
+
+Baseline text classification experiments use an 8-class emotion
+corpus of $N{=}34{,}792$ utterances.
+Table~\ref{tab:class_dist} shows the class distribution, which
+is severely imbalanced: \textit{joy} accounts for 31.75\% of
+samples while \textit{shame} contributes only 0.42\%.
+Given this imbalance, macro-averaged F1 is the primary evaluation
+metric; accuracy is reported solely for completeness.
+
+\begin{table}[htbp]
+\centering
+\caption{Class Distribution of the 8-Class Text Corpus}
+\label{tab:class_dist}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Emotion} & \textbf{Samples} & \textbf{Proportion (\%)} \\
+\midrule
+Joy      & 11{,}045 & 31.75 \\
+Sadness  &  6{,}722 & 19.32 \\
+Fear     &  5{,}410 & 15.55 \\
+Anger    &  4{,}297 & 12.35 \\
+Surprise &  4{,}062 & 11.68 \\
+Neutral  &  2{,}254 &  6.48 \\
+Disgust  &    856   &  2.46 \\
+Shame    &    146   &  0.42 \\
+\midrule
+\textbf{Total} & \textbf{34{,}792} & \textbf{100.00} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Raw utterances are preprocessed using NeatText~\cite{neattext2021}:
+\textit{(i)} user handles (\texttt{@mentions}) and
+\textit{(ii)} English stop-words are removed sequentially.
+A stratified 70/30 split (\texttt{random\_state=42}) yields
+24,353 training and 10,438 test samples.
+
+\subsection{Text Classifiers}
+
+Seven experimental conditions are evaluated, all using
+CountVectorizer as the text representation layer.
+
+\begin{itemize}
+    \item \textbf{LR}: Logistic Regression, L-BFGS solver,
+          $C{=}1.0$, \texttt{max\_iter=1000}.
+    \item \textbf{LR-bal}: LR with \texttt{class\_weight=`balanced'}.
+    \item \textbf{SVM}: SVM, RBF kernel, $C{=}10$.
+    \item \textbf{SVC-bal}: Linear SVC,
+          \texttt{class\_weight=`balanced'},
+          \texttt{max\_iter=2000}.
+    \item \textbf{RF}: Random Forest~\cite{breiman2001rf},
+          100 estimators, \texttt{random\_state=42} (a common
+          default ensemble size for tabular/text baselines).
+    \item \textbf{RF-bal}: RF with
+          \texttt{class\_weight=`balanced'}.
+    \item \textbf{SMOTE+LR}: SMOTE~\cite{chawla2002smote}
+          applied in feature space, followed by LR.
+\end{itemize}
+
+\subsection{Deployed Text Emotion Model}
+
+MACE's production classifier is
+\texttt{SamLowe/roberta-base-go\_emotions}~\cite{samlow2022goemotions},
+a RoBERTa-base model fine-tuned on the GoEmotions
+corpus~\cite{demszky2020goemotions} (58,000 utterances,
+28 emotion classes).
+The model card reports F1~$\approx$~0.45 at a uniform 0.5
+decision threshold, rising to F1~$\approx$~0.54 when each label's
+threshold is individually optimised; we did not independently
+re-evaluate this model and report the card's own figures for
+transparency.
+The model is loaded via the HuggingFace \texttt{transformers}
+pipeline with \texttt{top\_k=None} to obtain the full
+probability distribution over all 28 classes.
+
+\textbf{Comparability note.}
+The 8-class BoW baseline experiments and the 28-class RoBERTa
+results are on distinct datasets and label spaces and cannot be
+compared numerically.
+The BoW baselines demonstrate the ceiling imposed by
+non-contextual representations, motivating the transformer-based
+production model.
+
+\subsection{FER2013 Facial Emotion Dataset}
+\label{sec:fer_setup}
+
+The Facial Expression Recognition 2013 (FER2013)
+dataset~\cite{goodfellow2013fer} was introduced at the ICML 2013
+Representation Learning Workshop.
+It comprises 35,887 greyscale 48$\times$48-pixel facial images
+collected from web sources, annotated with one of seven emotion
+categories: Angry, Disgust, Fear, Happy, Neutral, Sad, and
+Surprise.
+The official partition provides 28,709 training, 3,589
+validation, and 3,589 test images.
+We use the standard test split for all benchmark comparisons.
+
+% -----------------------------------------------------------
+\section{Text Emotion Classification Results}
+\label{sec:results}
+
+\subsection{Overall Performance}
+
+Table~\ref{tab:summary} reports accuracy, macro F1, and
+weighted F1 for all seven conditions.
+SVC-bal achieves the best macro F1 (60.42\%) and is
+recommended as the primary BoW baseline.
+
+\begin{table}[htbp]
+\centering
+\caption{Text Classifier Performance ($n_{\text{test}}{=}10{,}438$)}
+\label{tab:summary}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Model} & \textbf{Acc (\%)} & \textbf{Mac-F1 (\%)} &
+\textbf{Wt-F1 (\%)} \\
+\midrule
+LR          & 63.54 & 59.48 & 62.75 \\
+LR-bal      & 61.10 & 60.06 & 61.44 \\
+SVM         & 62.96 & 58.44 & 61.90 \\
+SVC-bal     & 61.36 & \textbf{60.42} & 61.27 \\
+RF          & 58.32 & 55.12 & 57.97 \\
+RF-bal      & 53.68 & 54.77 & 55.17 \\
+SMOTE+LR    & 59.91 & 57.68 & 60.23 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Per-Class F1: Effect of Class Weighting}
+
+Table~\ref{tab:perclass} contrasts standard and class-weighted
+variants for the LR and SVC families.
+
+\begin{table*}[t]
+\centering
+\caption{Per-Class F1 (\%): Standard vs.\ Class-Weighted Classifiers}
+\label{tab:perclass}
+\begin{tabular}{lrrrrrr}
+\toprule
+\textbf{Emotion} &
+\textbf{LR} & \textbf{LR-bal} & \textbf{$\Delta$} &
+\textbf{SVM} & \textbf{SVC-bal} & \textbf{$\Delta$} \\
+\midrule
+Joy      & 69.47 & 67.84 & $-$1.63 & 68.46 & 67.70 & $-$0.76 \\
+Sadness  & 58.57 & 57.18 & $-$1.39 & 57.60 & 56.87 & $-$0.73 \\
+Fear     & 70.93 & 70.75 & $-$0.18 & 71.82 & 70.60 & $-$1.22 \\
+Anger    & 59.01 & 58.21 & $-$0.80 & 56.11 & 57.02 & $+$0.91 \\
+Surprise & 49.50 & 49.75 & $+$0.25 & 48.26 & 48.33 & $+$0.07 \\
+Neutral  & 66.62 & 55.99 & $-$10.63& 68.98 & 60.78 & $-$8.20 \\
+Disgust  & 26.39 & \textbf{35.40} & $+$9.01  &
+           20.98 & \textbf{33.19} & $+$12.21 \\
+Shame    & 75.32 & 85.39 & $+$10.07 & 75.32 & 88.89 & $+$13.57 \\
+\midrule
+\textbf{Macro F1} & 59.48 & 60.06 & $+$0.58 &
+                    58.44 & \textbf{60.42} & $+$1.98 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\textbf{Class weighting recovers minority classes; the SVM-family
+comparison is confounded.}
+Within the Logistic Regression family, LR and LR-bal differ only
+in \texttt{class\_weight}, making this pair a clean, single-variable
+ablation: disgust F1 rises from 26.39\% to 35.40\% ($+$9.01~pp)
+and shame from 75.32\% to 85.39\% ($+$10.07~pp).
+This is the primary evidence in this paper that class weighting
+increases the gradient contribution from minority-class errors
+during optimisation, counteracting the frequency-driven bias of
+unweighted training.
+The SVM-family pair (SVM~$\to$~SVC-bal) shows a larger apparent
+gain on disgust (20.98\%~$\to$~33.19\%, $+$12.21~pp) and shame
+(75.32\%~$\to$~88.89\%, $+$13.57~pp); however, this comparison
+changes three factors simultaneously---kernel (RBF~$\to$~linear),
+the regularisation constant ($C{=}10$~$\to$~default $C{=}1$), and
+class weighting---so we do not attribute the full SVM-family
+delta to weighting alone.
+We report both pairs for completeness, but treat the LR-family
+result as the controlled estimate of the weighting effect and
+the SVM-family result as a comparison between two
+deployment-plausible configurations rather than an ablation.
+Class weighting also comes at a cost to neutral classification:
+balanced LR drops neutral F1 from 66.62\% to 55.99\%
+($-$10.63 pp).
+In a therapeutic companion context this trade-off is arguably
+acceptable---neutral misclassification is less harmful than
+silently failing to detect disgust or shame---though we have not
+tested this assumption with human raters.
+
+\textbf{SMOTE underperforms class-weighting.}
+SMOTE+LR achieves 57.68\% macro F1, below both LR-bal
+(60.06\%) and SVC-bal (60.42\%).
+SMOTE synthesises minority-class examples via interpolation
+between $k$-nearest neighbours in feature space; on sparse
+high-dimensional BoW vectors this produces semantically
+incoherent token distributions~\cite{blagus2013smote},
+which adds noise rather than signal.
+
+\textbf{Random Forest degrades under balancing.}
+RF-bal (53.68\% accuracy, 54.77\% macro F1) underperforms
+unbalanced RF (58.32\%, 55.12\%).
+In high-dimensional sparse spaces, each tree selects features
+randomly; balanced weights amplify minority-class gradients
+but simultaneously increase split-level variance, degrading
+majority-class recall disproportionately.
+
+\subsection{Qualitative System Interaction Examples}
+
+Table~\ref{tab:qual} presents illustrative MACE responses
+showing how the CoT context modulates response generation.
+
+\begin{table*}[t]
+\centering
+\caption{Illustrative MACE Interaction Examples (Single- and Multi-Turn)}
+\label{tab:qual}
+\begin{tabular}{p{2.6cm}p{2.1cm}p{1.8cm}p{1.6cm}p{5.7cm}}
+\toprule
+\textbf{User Utterance} & \textbf{Text Emotion (Conf.)} &
+\textbf{Facial} & \textbf{Memory} & \textbf{System Response} \\
+\midrule
+``I feel so alone tonight.'' &
+sadness (0.91) & Sad & None &
+``I hear you, and I want you to know your feelings are completely
+ valid. Feeling alone can be incredibly heavy---I am right
+ here with you, and you do not have to carry this alone.'' \\
+\addlinespace
+``I love basketball---I played so well today!'' &
+joy (0.87) & Happy & basketball (like) &
+``That is wonderful! Your passion for basketball really shines
+ through---enjoy this feeling, you earned it.
+ \emph{(Noted: you like basketball.)}'' \\
+\midrule
+\multicolumn{5}{l}{\textit{Multi-turn example (conversation
+history $\mathcal{H}_{t-1}$ active):}}\\[2pt]
+Turn 1: ``I hate my job.'' &
+anger (0.79) & Neutral & None &
+``That sounds really frustrating. Would you like to talk about
+ what specifically has been getting to you?'' \\
+Turn 2: ``My manager never listens.'' &
+anger (0.74) & Neutral &
+\mbox{Hist: anger} &
+``It makes complete sense that you are angry---feeling unheard
+ by someone in authority is genuinely demoralising.
+ Your frustration from earlier is still coming through.'' \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+The multi-turn example illustrates the direct value of
+$\mathcal{H}_{t-1}$: without history, the response to Turn~2
+would treat the complaint as isolated.
+With history active, the system references prior emotional
+continuity explicitly (``Your frustration from earlier''),
+a qualitative improvement not captured by the automated
+proxy metrics in Section~\ref{sec:ablation}.
+
+% -----------------------------------------------------------
+\section{Facial Emotion Inference Validation}
+\label{sec:facial}
+
+\subsection{Motivation}
+
+MACE's facial inference module employs Gemini-1.5-Flash via
+a constrained zero-shot prompt rather than a supervised
+facial emotion recognition (FER) model.
+This section contextualises this design choice by:
+\textit{(i)} reporting published supervised performance on
+FER2013 as the benchmark landscape;
+\textit{(ii)} comparing the methodological trade-offs between
+zero-shot VLM and supervised inference; and
+\textit{(iii)} analysing the failure modes known to affect
+zero-shot VLM inference on facial images.
+This paper does not report a quantitative accuracy figure for
+Gemini-1.5-Flash on FER2013 or any other benchmark.
+
+\subsection{Supervised Baseline Performance on FER2013}
+
+Table~\ref{tab:fer_baselines} reports published accuracy on
+the FER2013 test set for representative supervised methods
+spanning the CNN-to-transformer evolution, alongside the
+human performance benchmark.
+
+\begin{table}[htbp]
+\centering
+\caption{Published Supervised Performance on FER2013 Test Set}
+\label{tab:fer_baselines}
+\begin{tabular}{llr}
+\toprule
+\textbf{Method} & \textbf{Type} & \textbf{Acc (\%)} \\
+\midrule
+Human~\cite{goodfellow2013fer}            & Human          & 65.5 \\
+Deep CNN~\cite{goodfellow2013fer}         & CNN (2013)     & 65.4 \\
+VGGNet fine-tuned~\cite{li2022fer_survey} & CNN transfer   & 70.1 \\
+ResNet variants~\cite{li2022fer_survey}   & CNN transfer   & 72.4 \\
+Transformer (ViT)~\cite{li2022fer_survey} & ViT fine-tuned & 87.8 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two observations from Table~\ref{tab:fer_baselines} merit
+emphasis.
+First, human accuracy (65.5\%) is \emph{not} substantially
+above early CNN performance (65.4\%), underscoring the
+inherent ambiguity of posed facial expressions.
+Second, transformer-based approaches require full supervised
+fine-tuning on FER2013 training data to achieve 87.8\%
+accuracy; this training phase is entirely absent in
+zero-shot VLM inference.
+
+\subsection{VLM vs.\ Supervised FER: Methodological Comparison}
+
+Zero-shot VLM inference and supervised FER models represent
+two fundamentally different operating regimes, each with
+distinct trade-offs:
+
+\begin{itemize}
+    \item \textbf{Data independence.}
+          Supervised models require hundreds to tens of
+          thousands of labelled facial images per target domain.
+          A VLM requires no domain-specific training data,
+          enabling immediate deployment in novel environments
+          (e.g., clinical settings, new demographic groups).
+    \item \textbf{Label space flexibility.}
+          Changing the emotion taxonomy for a supervised model
+          requires full retraining.
+          For the VLM approach, the taxonomy is modified by
+          editing $\mathcal{P}_{\text{face}}$.
+    \item \textbf{Accuracy ceiling.}
+          Supervised transformers trained on FER2013 data
+          achieve $\approx$88\% accuracy by exploiting
+          task-specific training signal unavailable to
+          zero-shot models.
+          Zero-shot VLMs sacrifice this ceiling for generality.
+    \item \textbf{Resolution sensitivity.}
+          FER2013 images are 48$\times$48 pixels, which is
+          below the resolution at which modern VLMs are most
+          reliable for fine-grained visual tasks.
+          Real-world webcam frames are typically higher
+          resolution but may introduce additional confounders.
+\end{itemize}
+
+In the MACE deployment context, the VLM approach is preferred
+because:
+\textit{(i)} MACE is not trained on any FER dataset and
+must generalise to arbitrary users and environments;
+\textit{(ii)} the emotion label vocabulary can be adapted
+to match the same 28-class GoEmotions taxonomy as the text
+classifier by modifying $\mathcal{P}_{\text{face}}$;
+and \textit{(iii)} the facial signal is auxiliary---it
+enriches the CoT prompt but is not the primary emotion
+source---so moderate inference accuracy is acceptable.
+
+\subsection{Failure Mode Analysis}
+
+Based on published analyses of VLM performance on facial
+emotion tasks~\cite{li2022fer_survey} and the known properties
+of FER2013, the following failure modes are anticipated:
+
+\textbf{Fear--Surprise confusion.}
+Fear and surprise share raised eyebrows and widened eyes;
+these are visually similar cues that confuse both human
+annotators and classifiers.
+Goodfellow et al.~\cite{goodfellow2013fer} report this as
+the dominant confusion pair on FER2013.
+
+\textbf{Anger--Disgust confusion.}
+Both emotions produce similar brow-lowering and
+lip-compression expressions.
+Zero-shot models lacking exposure to fine-grained FAU
+labelling are particularly susceptible to this confusion.
+
+\textbf{Neutral--Sadness confusion.}
+Subtle sadness expressions may be scored as neutral by
+models lacking fine-grained training.
+This is especially prevalent for low-intensity emotional
+expressions, which are common in naturalistic webcam
+captures.
+
+\textbf{Resolution degradation.}
+FER2013's 48$\times$48 pixel resolution renders fine-grained
+cues (e.g., subtle lip curvature, sclera exposure) largely
+invisible.
+While webcam frames are typically higher resolution,
+unfavourable lighting or motion blur can similarly obscure
+these cues.
+
+\textbf{Pose and occlusion.}
+FER2013 images predominantly display frontal, unoccluded
+faces.
+Real-world interactions involve off-axis head poses, partial
+occlusion by glasses or hair, and varied lighting.
+Zero-shot VLMs may generalise better to these conditions
+than supervised models trained predominantly on frontal
+posed images; empirical verification on in-the-wild datasets
+(e.g., AffectNet~\cite{mollahosseini2019affectnet}) constitutes
+future work.
+
+% -----------------------------------------------------------
+\section{Ablation Study}
+\label{sec:ablation}
+
+\subsection{Motivation and Design}
+
+A full system ablation---disabling each CoT component and
+rating responses with human annotators---requires Gemini API
+calls and recruited participants; this is reserved as part of
+the planned user study (Section~\ref{sec:userstudy}).
+We present an automated proxy ablation that is fully executable
+and captures the central research question: \emph{does
+enriching the linguistic context available to a classifier
+improve detection accuracy, and which emotion classes benefit
+most?}
+
+We operationalise \emph{context richness} via n-gram scope,
+using LR-bal throughout to isolate context effects from
+classifier choice (SVC-bal achieves marginally higher macro F1
+but does not alter the directional findings):
+\begin{itemize}
+    \item \textbf{V1 (Unigram)}: text-only with no contextual
+          word-order dependencies.
+    \item \textbf{V2 (Unigram+Bigram)}: captures adjacent-word
+          relationships; serves as a controlled proxy for the
+          effect of incorporating short-range textual context.
+    \item \textbf{V3 (Unigram+Bigram+Trigram)}: fullest
+          surface-level context.
+\end{itemize}
+
+\subsection{Ablation Results}
+
+Table~\ref{tab:ablation} reports overall metrics and
+Table~\ref{tab:ablation_perclass} shows the per-class
+transition from V1 to V2.
+
+\begin{table}[htbp]
+\centering
+\caption{Ablation: N-Gram Context Depth (LR-bal)}
+\label{tab:ablation}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Variant} & \textbf{N-gram} & \textbf{Acc (\%)} &
+\textbf{Mac-F1 (\%)} \\
+\midrule
+V1 --- Unigram [text-only]          & (1,1) & 61.10 & 60.06 \\
+V2 --- +Bigram [+context proxy]     & (1,2) & \textbf{62.78} &
+\textbf{60.39} \\
+V3 --- +Trigram [full surface]      & (1,3) & 62.64 & 59.64 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Per-Class F1 (\%) Change: V1$\to$V2 (LR-bal)}
+\label{tab:ablation_perclass}
+\begin{tabular}{lrrl}
+\toprule
+\textbf{Emotion} & \textbf{V1 (\%)} & \textbf{V2 (\%)} &
+\textbf{$\Delta$} \\
+\midrule
+Fear     & 70.75 & 73.38 & $+$2.63 $\uparrow$ \\
+Joy      & 67.84 & 69.95 & $+$2.11 $\uparrow$ \\
+Surprise & 49.75 & 51.28 & $+$1.53 $\uparrow$ \\
+Sadness  & 57.18 & 58.53 & $+$1.35 $\uparrow$ \\
+Anger    & 58.21 & 58.85 & $+$0.64 $\uparrow$ \\
+Shame    & 85.39 & 83.72 & $-$1.67 $\downarrow$ \\
+Neutral  & 55.99 & 53.95 & $-$2.04 $\downarrow$ \\
+Disgust  & 35.40 & 33.50 & $-$1.90 $\downarrow$ \\
+\midrule
+Macro F1 & 60.06 & 60.39 & $+$0.33 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Discussion and Architectural Implications}
+
+\textbf{Majority classes benefit from richer context.}
+Adding bigrams improves F1 for fear ($+$2.63~pp), joy ($+$2.11~pp),
+and surprise ($+$1.53~pp).
+These classes have $n \geq 4{,}000$ training samples, providing
+sufficient coverage to learn informative bigram patterns
+(e.g., ``not happy'', ``so scared'', ``can't believe'').
+
+\textbf{Minority classes degrade with richer context.}
+Disgust F1 drops 1.90 pp from V1 to V2, and neutral drops
+2.04 pp.
+With only $\approx$599 disgust training examples, the bigram
+feature space is extremely sparse: most co-occurrence patterns
+appear once or twice, introducing noise.
+Trigrams exacerbate this: disgust drops further to 29.12\%
+at V3 versus 35.40\% at V1.
+
+\textbf{Architectural implication.}
+Learned n-gram representations disproportionately harm
+minority classes when context scope is widened, because
+those classes lack sufficient data to populate multi-token
+feature patterns.
+MACE's CoT architecture directly addresses this:
+rather than \emph{learning} context-dependent associations
+from labelled data, it \emph{explicitly provides} the
+detected emotion, facial signal, and history as structured
+natural language to the LLM.
+This eliminates the data-sparsity bottleneck for minority
+classes.
+The ablation provides quantitative motivation for preferring
+explicit contextual injection over learned n-gram features.
+
+\textbf{V3 exhibits diminishing returns.}
+Moving from V2 to V3 does not improve macro F1
+(60.39\%~$\to$~59.64\%), consistent with high-order n-gram
+behaviour on short emotional texts where most trigrams are
+hapax legomena.
+
+% -----------------------------------------------------------
+\section{Comparative Analysis}
+\label{sec:comparison}
+
+Table~\ref{tab:comparison} positions MACE against representative
+affective dialogue systems on six architectural dimensions.
+
+\begin{table*}[t]
+\centering
+\caption{Architectural Comparison of Affective Dialogue Systems}
+\label{tab:comparison}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{System} &
+\textbf{Modalities} &
+\textbf{Emotion Classes} &
+\textbf{Persistent Memory} &
+\textbf{Preference Feedback} &
+\textbf{LLM Response} &
+\textbf{FER Validation} \\
+\midrule
+SemEval-2007~\cite{strapparava2007semeval} &
+Text & 6 & No & No & No & No \\
+Poria et al.~\cite{poria2016convolutional} &
+T+A+V & 7 & No & No & No & Yes \\
+Hazarika et al.~\cite{hazarika2018conversational} &
+T+A+V & 7 & Episodic & No & No & Yes \\
+Standard instruction-tuned LLM &
+Text & Implicit & Session only & No & Yes & No \\
+\textbf{MACE (proposed)} &
+\textbf{T+V+Voice} &
+\textbf{28} &
+\textbf{Persistent} &
+\textbf{Binary (DPO-ready)} &
+\textbf{Yes} &
+\textbf{No (\S\ref{sec:facial})} \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Among the systems surveyed, MACE is the only one combining
+fine-grained 28-class text emotion recognition, a zero-shot VLM
+facial inference module characterised against (but not yet
+quantitatively validated on) FER2013, cross-session persistent
+memory, multimodal voice interaction, and a structured preference
+data pipeline for future DPO alignment.
+
+% -----------------------------------------------------------
+\section{Planned User Evaluation}
+\label{sec:userstudy}
+
+\subsection{Preliminary Qualitative Observations}
+
+During development, the authors informally exercised MACE across
+a range of hand-crafted single- and multi-turn scenarios spanning
+the 8 emotion classes; two representative transcripts are shown
+in Table~\ref{tab:qual}.
+These development-time sessions were not systematically logged or
+scored and therefore do not constitute quantitative evidence; we
+report them only as motivation for the structured protocol below,
+not as a validated result.
+Qualitatively, enabling conversation history caused responses to
+reference prior emotional context explicitly (Table~\ref{tab:qual},
+multi-turn example), a pattern absent when history was disabled.
+A systematic, logged measurement of memory-referencing accuracy
+and emotion-acknowledgement rate across a fixed, pre-registered
+scenario set is deferred to the IRB-approved study described next.
+
+\subsection{Full Evaluation Protocol}
+
+\textbf{Participants.}
+$N{=}30$ adult participants will be recruited following
+Institutional Review Board (IRB) approval, with a minimum
+of 15 per condition in a within-subjects design.
+
+\textbf{Conditions.}
+Each participant interacts with Full MACE and a text-only
+baseline (no facial input, no persistent memory, no history)
+across 10 standardised emotional vignettes in counterbalanced
+order.
+
+\textbf{Primary measure.}
+Perceived empathy is assessed via the Jefferson Scale of
+Empathy adapted for AI agents~\cite{hojat2001jse}
+(7-point Likert, 5 items).
+
+\textbf{Secondary measures.}
+Contextual coherence (3-item 5-point Likert);
+personalisation recall (binary: did the system correctly
+reference a stated preference?); and task completion time.
+
+\textbf{Analysis.}
+Paired $t$-tests for between-condition empathy score
+differences; McNemar's test for personalisation recall
+accuracy.
+Results will be reported in a follow-up publication.
+
+% -----------------------------------------------------------
+\section{Limitations}
+\label{sec:limitations}
+
+\textbf{Facial inference: benchmark context vs.\ deployment.}
+Section~\ref{sec:facial} characterises published FER2013
+supervised baselines to contextualise the trade-off of using a
+zero-shot VLM rather than a supervised FER model; no accuracy or
+F1 figure for Gemini-1.5-Flash is claimed anywhere in this paper.
+Furthermore, FER2013 consists of controlled, predominantly
+frontal greyscale images collected under limited pose and
+lighting variation.
+Real-world webcam interaction introduces additional
+confounders: motion blur, oblique head pose, partial
+occlusion, variable illumination, and compressed video
+artefacts.
+Benchmark performance should therefore be treated as an
+upper bound on in-the-wild accuracy.
+Evaluation on naturalistic datasets such as
+AffectNet~\cite{mollahosseini2019affectnet} constitutes
+future work.
+
+\textbf{Text classifier BoW ceiling.}
+The BoW baselines plateau at 60.42\% macro F1 for SVC-bal;
+the deployed contextual transformer (RoBERTa-base) is reported,
+per its model card, at F1~$\approx$~0.45--0.54 (depending on
+thresholding) on the substantially harder 28-class GoEmotions
+task, underscoring the non-comparability of these evaluation
+settings.
+Future work should evaluate RoBERTa on the same 8-class corpus
+to enable direct, controlled comparison.
+
+\textbf{Automated proxy for ablation.}
+The n-gram ablation is verifiable and reproducible but is
+a proxy for response empathy, not a direct measurement.
+The full component ablation---removing each CoT element and
+eliciting human empathy ratings---remains as part of the
+planned user study.
+
+\textbf{Single-split evaluation; no significance testing.}
+All text-classification results (Tables~\ref{tab:summary}--%
+\ref{tab:ablation_perclass}) are computed on one stratified
+70/30 split with a fixed seed (\texttt{random\_state=42}), without
+cross-validation, repeated resampling, or significance testing.
+Differences below approximately 2~pp---for example, the
+surprise-class delta between SVM and SVC-bal ($+$0.07~pp) or the
+anger-class delta between LR and LR-bal ($-$0.80~pp)---should be
+treated as within the likely range of split-to-split variance
+rather than as established effects.
+The larger effects reported for disgust, shame, and neutral are
+less likely to be pure noise given their magnitude, but this has
+not been confirmed with repeated runs.
+Future work should report means and standard deviations over
+multiple seeds or cross-validation folds before treating any
+single-split delta below this threshold as conclusive.
+
+\textbf{RLHF pipeline not yet active.}
+Binary preference data is collected but has not yet been
+used to train a reward model or to fine-tune $\mathcal{G}$.
+Full DPO training~\cite{rafailov2023dpo} requires a preference
+corpus of at least several thousand labelled pairs.
+
+\textbf{Privacy and data governance.}
+User utterances and facial images are transmitted to external
+commercial APIs.
+Applications involving sensitive mental health disclosures
+should instead employ a locally hosted open-weight
+LLM~\cite{ouyang2022rlhf}, which would retain all data
+on-device.
+
+\textbf{Neutral-class precision--recall trade-off.}
+Class weighting reduces neutral F1 by up to 10.63 pp
+(Table~\ref{tab:perclass}).
+This trade-off is acceptable in the therapeutic companion
+context but would require re-evaluation if MACE were applied
+to high-neutral domains such as factual question answering.
+
+% -----------------------------------------------------------
+\section{Conclusion}
+\label{sec:conclusion}
+
+This paper presented MACE, a multimodal empathetic AI companion
+that integrates 28-class text emotion recognition via a
+fine-tuned RoBERTa model (GoEmotions model-card F1~$\approx$~0.54
+under per-label optimised thresholds); zero-shot facial affect
+inference via Gemini-1.5-Flash, whose design is motivated by a
+characterisation of the published FER2013 benchmark landscape;
+voice interaction; Chain-of-Thought contextual prompting with
+persistent user memory; and a binary preference data
+infrastructure designed for future DPO alignment.
+
+Controlled text classification experiments on an 8-class corpus
+($N{=}34{,}792$) established that class-weighted LinearSVC
+achieves the best macro F1 (60.42\%).
+A clean, single-variable ablation (Logistic Regression with and
+without class weighting) shows disgust F1 rising from 26.39\% to
+35.40\% ($+$9.01~pp) when class weighting is the only factor
+changed; a larger gain of $+$12.21~pp is observed when
+additionally switching from an RBF-kernel SVM to a linear SVC,
+a comparison confounded by the simultaneous kernel and
+regularisation change and reported here as a practical
+configuration comparison rather than an isolated ablation.
+SMOTE oversampling underperforms class-weighting (57.68\%
+macro F1), consistent with reported degradation of synthetic
+interpolation on sparse BoW features~\cite{blagus2013smote}.
+
+The automated ablation study quantified a measurable asymmetry:
+enriching linguistic context via bigrams improves majority
+classes (fear $+$2.63~pp, joy $+$2.11~pp) but degrades minority
+classes (disgust $-$1.90 pp), plausibly due to feature sparsity.
+This motivates, but does not by itself establish, that MACE's
+explicit CoT injection outperforms learned n-gram representations
+for empathetic response quality; that comparison requires the
+human-rated component ablation described in
+Section~\ref{sec:userstudy}.
+All text-classification results derive from a single 70/30 split
+without cross-validation (Section~\ref{sec:limitations}).
+
+The facial inference section characterises the published FER2013
+benchmark landscape---human accuracy of 65.5\%, supervised
+CNN accuracy of $\approx$65--72\%, and ViT accuracy of
+$\approx$88\%---to motivate the zero-shot VLM design choice on
+methodological grounds (data independence, label-space
+flexibility) rather than on a quantitative accuracy comparison.
+No accuracy or F1 figure for Gemini-1.5-Flash is reported in this
+paper.
+
+Future work encompasses: \textit{(i)} the planned 30-participant
+IRB-approved user study with Jefferson Scale empathy ratings,
+which will also provide the first systematic, logged measurement
+of memory-referencing accuracy in place of the informal
+observations in Section~\ref{sec:userstudy};
+\textit{(ii)} full component ablation with human raters;
+\textit{(iii)} DPO training on accumulated preference
+data~\cite{rafailov2023dpo};
+\textit{(iv)} evaluation of the facial inference module on
+AffectNet~\cite{mollahosseini2019affectnet}; and
+\textit{(v)} a privacy-preserving on-device LLM deployment.
+
+% -----------------------------------------------------------
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{paper_icvgip}
+
+\end{document}
